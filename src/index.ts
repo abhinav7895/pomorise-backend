@@ -5,9 +5,6 @@ import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import insightsRoutes from './routes/insightsRoutes.js';
 
-import type { Context } from 'hono';
-import authRoutes from './routes/authRoutes.js';
-
 config();
 
 const supabase = createClient(
@@ -35,9 +32,8 @@ app.use(
   })
 );
 
-app.get('/health', (c) => c.json({ status: 'Good' }, 200));
+app.get('/health', (c) => c.json({   status: 'Good' }, 200));
 
-app.route('/api/auth', authRoutes);
 app.route('/api', insightsRoutes);
 
 
