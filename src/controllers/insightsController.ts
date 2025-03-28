@@ -14,6 +14,7 @@ console.log('OpenAI API Key:', env.OPENAI_API_KEY);
 // Initialize OpenAI
 const openai = createOpenAI({
   apiKey: env.OPENAI_API_KEY || 'your-openai-api-key-here',
+  baseURL : "https://api.novita.ai/v3/openai"
 });
 
 // Hardcoded fallback data
@@ -64,7 +65,7 @@ export const getInsights = async (c: Context): Promise<Response> => {
     `;
 
     const result = await generateObject({
-      model: openai('gpt-3.5-turbo'),
+      model: openai('meta-llama/llama-3.1-8b-instruct'),
       prompt,
       schema: InsightsResponseSchema,
       mode: 'json',
