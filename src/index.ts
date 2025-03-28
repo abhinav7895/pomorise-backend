@@ -1,16 +1,10 @@
 import { serve } from '@hono/node-server';
-import { Hono, type Next } from 'hono';
+import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
 import insightsRoutes from './routes/insightsRoutes.js';
 
 config();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
 
 const app = new Hono();
 
