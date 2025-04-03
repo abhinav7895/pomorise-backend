@@ -4,12 +4,6 @@ import insightsRoutes from './routes/insightsRoutes.js'
 import {config} from "dotenv";
 import { cors } from 'hono/cors'
 import aiRoutes from './routes/ai.js';
-import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { config } from 'dotenv';
-import insightsRoutes from './routes/insightsRoutes.js';
-
 config();
 
 const app = new Hono().basePath("api")
