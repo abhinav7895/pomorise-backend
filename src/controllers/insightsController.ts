@@ -14,6 +14,7 @@ console.log('OpenAI API Key:', env.OPENAI_API_KEY);
 // Initialize OpenAI
 const openai = createOpenAI({
   apiKey: env.OPENAI_API_KEY || 'your-openai-api-key-here',
+  baseURL : "https://api.novita.ai/v3/openai"
 });
 
 // Hardcoded fallback data
@@ -49,22 +50,24 @@ export const getInsights = async (c: Context): Promise<Response> => {
     }
 
     // Construct prompt dynamically based on available data
-    let prompt = `
-      You are an expert personal growth and productivity coach, skilled in extracting meaningful insights from user data and providing actionable advice. Generate a JSON object adhering to the 'InsightsResponseSchema' based on the following user data:
+// Generate concise and clear insights  
+let prompt = `  
+  You are a productivity expert. Based on the user's habits and tasks, generate a JSON object following 'InsightsResponseSchema' with:  
 
-      ${hasHabits ? 'Habits:\n' + habits.map((h: any) => `- ${h.name} - ${h.description} (Current Streak: ${h.currentStreak}, Target: ${h.targetDays} days)`).join('\n') : 'No habits provided.'}
-      ${hasTasks ? 'Tasks:\n' + tasks.map((t: any) => `- ${t.title} - ${t.notes || 'No notes'} (Progress: ${t.completedPomodoros}/${t.estimatedPomodoros} pomodoros)`).join('\n') : 'No tasks provided.'}
+  - A **short and simple motivational story** (three or four sentences) inspired by real-world examples.  
+  - **Three clear and actionable tips** in simple language.  
+  - **Concise feedback** (one sentence) that is easy to understand.  
+  - **Two areas to improve**, written in simple and direct sentences.  
 
-      Specifically:
-      - Craft the 'story' field as a single paragraph inspired by a relatable, real-world example (e.g., James Clear, who struggled post-injury but built the "atomic habits" framework). Tailor the story to reflect the user's situation—whether they have habits, tasks, or both—and provide context and inspiration.
-      - Generate the 'tips' field with 3 practical, actionable tips relevant to the provided habits and/or tasks (or general productivity if none).
-      - Create the 'feedback' field with a concise, positive assessment of the user's progress based on the data (or encouragement if minimal data).
-      - List 2 specific 'areasToImprove' based on the habits and/or tasks (or onboarding steps if none).
-      Return the response in JSON format with all content under the 'insights' key.
-    `;
+  User Data:  
+  ${hasHabits ? 'Habits:\n' + habits.map((h: any) => `- ${h.name}: ${h.description} (Streak: ${h.currentStreak}/${h.targetDays})`).join('\n') : 'No habits provided.'}  
+  ${hasTasks ? 'Tasks:\n' + tasks.map((t: any) => `- ${t.title}: ${t.notes || 'No notes'} (Progress: ${t.completedPomodoros}/${t.estimatedPomodoros})`).join('\n') : 'No tasks provided.'}  
+
+  Keep all responses **short, clear, and easy to understand**. Format everything in **simple sentences** without complex words. Return in JSON format under the 'insights' key.  
+`;
 
     const result = await generateObject({
-      model: openai('gpt-3.5-turbo'),
+      model: openai('meta-llama/llama-3.1-8b-instruct'),
       prompt,
       schema: InsightsResponseSchema,
       mode: 'json',
