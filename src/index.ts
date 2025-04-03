@@ -3,10 +3,11 @@ import { Hono } from 'hono'
 import insightsRoutes from './routes/insightsRoutes.js'
 import {config} from "dotenv";
 import { cors } from 'hono/cors'
+import aiRoutes from './routes/ai.js';
 
 config();
 
-const app = new Hono()
+const app = new Hono().basePath("api")
 const PORT = parseInt(process.env.PORT!) || 8000
 const allowedOrigins = ['http://localhost:8080','http://localhost:5174','http://localhost:5173', "https://pomorise.vercel.app" ];
 
@@ -22,7 +23,8 @@ app.get('/health', (c) => {
   return c.json({status : "Good"}, 200)
 })
 
-app.route('/api', insightsRoutes);
+app.route('/insights', insightsRoutes);
+app.route('/action', aiRoutes);
 
 
 serve({

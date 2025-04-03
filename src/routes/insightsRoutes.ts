@@ -4,6 +4,6 @@ import { getInsights } from '../controllers/insightsController.js';
 
 const insightsRoutes = new Hono();
 
-insightsRoutes.post('/insights', getInsights);
+insightsRoutes.post('/', getInsights);
 
 export default insightsRoutes;
