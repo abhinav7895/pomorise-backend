@@ -58,7 +58,7 @@ const TaskActionSchema = BaseActionSchema.extend({
     .max(10)
     .optional()
     .describe("Estimated pomodoros"),
-  notes: z.string().min(1).optional().describe("Notes for the task"),
+  notes: z.string().min(0).optional().describe("Notes for the task"),
 });
 
 const ActionSchema = z.discriminatedUnion("type", [
