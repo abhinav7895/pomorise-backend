@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import { z } from "zod";
 import { generateObject } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -96,10 +97,9 @@ const createSafeOpenAI = () => {
 
 const openai = createSafeOpenAI();
 
-export const getAction = async (c: Context): Promise<Response> => {
-  const startTime = Date.now();
-  const requestId = crypto.randomUUID();
+const action = new Hono();
 
+action.post("/", async (c: Context): Promise<Response> => {
   try {
     const { text, context } = await c.req.json<{
       text: string;
@@ -140,7 +140,7 @@ export const getAction = async (c: Context): Promise<Response> => {
       500
     );
   }
-};
+});
 
 const buildPrompt = (text: string, context?: ContextData): string => {
   let contextParts = [];
@@ -173,39 +173,41 @@ const buildPrompt = (text: string, context?: ContextData): string => {
     contextParts.length > 0 ? `\n\nCONTEXT:\n${contextParts.join("\n\n")}` : "";
 
   return `
-USER INPUT: "${text}"
-
-INSTRUCTIONS:
-1. Determine the most appropriate action type (tasks, habits, journal)
-2. For update/delete/complete actions, include the ID from context if available
-3. Follow these specific rules:
-
-TASKS:
-- "add": Must include title with emoji
-- "update"/"delete"/"complete": Include ID from context if matching
-- Example: {"type":"tasks","action":"complete","title":"Finish report","id":"123"}
-
-HABITS:
-- "add": Must include name and short
-- "update"/"delete"/"complete": Include ID from context if matching
-- Example: {"type":"habits","action":"complete","name":"Morning run","id":"456"}
-
-JOURNAL:
-- "add": Should include title and content (100 words only, based on the habits and task)
-- "update"/"delete": Include ID from context if matching
-- Example: {"type":"journal","action":"update","title":"3 April, Good day","content":"New content","id":"789"}
-
-
-DEFAULT:
-- When uncertain, default to tasks
-- For ambiguous completions ("I did X"), use tasks with complete action
-- For creation requests without clear type ("I need to X"), use tasks with add action
-- For delete/update requests without clear type ("I need to X"), or does not exist in context use tasks with add action
-
-${contextBlock}
-
-OUTPUT FORMAT: JSON matching the schema exactly, with all required fields.
-
-ANALYZE THIS INPUT: "${text}"
-`;
+  USER INPUT: "${text}"
+  
+  INSTRUCTIONS:
+  1. Determine the most appropriate action type (tasks, habits, journal)
+  2. For update/delete/complete actions, include the ID from context if available
+  3. Follow these specific rules:
+  
+  TASKS:
+  - "add": Must include title with emoji
+  - "update"/"delete"/"complete": Include ID from context if matching
+  - Example: {"type":"tasks","action":"complete","title":"Finish report","id":"123"}
+  
+  HABITS:
+  - "add": Must include name and short
+  - "update"/"delete"/"complete": Include ID from context if matching
+  - Example: {"type":"habits","action":"complete","name":"Morning run","id":"456"}
+  
+  JOURNAL:
+  - "add": Should include title and content (100 words only, based on the habits and task)
+  - "update"/"delete": Include ID from context if matching
+  - Example: {"type":"journal","action":"update","title":"3 April, Good day","content":"New content","id":"789"}
+  
+  
+  DEFAULT:
+  - When uncertain, default to tasks
+  - For ambiguous completions ("I did X"), use tasks with complete action
+  - For creation requests without clear type ("I need to X"), use tasks with add action
+  - For delete/update requests without clear type ("I need to X"), or does not exist in context use tasks with add action
+  
+  ${contextBlock}
+  
+  OUTPUT FORMAT: JSON matching the schema exactly, with all required fields.
+  
+  ANALYZE THIS INPUT: "${text}"
+  `;
 };
+
+export default action;

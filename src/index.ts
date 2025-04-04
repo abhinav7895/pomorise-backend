@@ -1,9 +1,10 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import insightsRoutes from './routes/insightsRoutes.js'
+import insights from './routes/insights.js'
 import {config} from "dotenv";
 import { cors } from 'hono/cors'
-import aiRoutes from './routes/ai.js';
+import action from './routes/action.js';
+import convert from './routes/convert.js';
 config();
 
 const app = new Hono().basePath("api")
@@ -28,8 +29,9 @@ app.use(
 
 app.get('/health', (c) => c.json({   status: 'Good' }, 200));
 
-app.route('/insights', insightsRoutes);
-app.route('/action', aiRoutes);
+app.route('/insights', insights);
+app.route('/action', action);
+app.route('/speech', convert);
 
 
 serve(

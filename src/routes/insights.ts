@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import { generateObject } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import type { Context } from "hono";
@@ -31,7 +32,9 @@ const fallbackData = {
   },
 };
 
-export const getInsights = async (c: Context): Promise<Response> => {
+const insights = new Hono();
+
+insights.post("/", async (c: Context): Promise<Response> => {
   try {
     const body = await c.req.json();
     const { habits, tasks } = body;
@@ -46,41 +49,41 @@ export const getInsights = async (c: Context): Promise<Response> => {
     }
 
     let prompt = `  
-  You are a productivity expert. Based on the user's habits and tasks, generate a JSON object following 'InsightsResponseSchema' with:  
-
-  - A **short and simple motivational story** (three or four sentences) inspired by real-world examples.  
-  - **Three clear and actionable tips** in simple language.  
-  - **Concise feedback** (one sentence) that is easy to understand.  
-  - **Two areas to improve**, written in simple and direct sentences.  
-
-  User Data:  
-  ${
-    hasHabits
-      ? "Habits:\n" +
-        habits
-          .map(
-            (h: any) =>
-              `- ${h.name}: ${h.description} (Streak: ${h.currentStreak}/${h.targetDays})`
-          )
-          .join("\n")
-      : "No habits provided."
-  }  
-  ${
-    hasTasks
-      ? "Tasks:\n" +
-        tasks
-          .map(
-            (t: any) =>
-              `- ${t.title}: ${t.notes || "No notes"} (Progress: ${
-                t.completedPomodoros
-              }/${t.estimatedPomodoros})`
-          )
-          .join("\n")
-      : "No tasks provided."
-  }  
-
-  Keep all responses **short, clear, and easy to understand**. Format everything in **simple sentences** without complex words. Return in JSON format under the 'insights' key.  
-`;
+    You are a productivity expert. Based on the user's habits and tasks, generate a JSON object following 'InsightsResponseSchema' with:  
+  
+    - A **short and simple motivational story** (three or four sentences) inspired by real-world examples.  
+    - **Three clear and actionable tips** in simple language.  
+    - **Concise feedback** (one sentence) that is easy to understand.  
+    - **Two areas to improve**, written in simple and direct sentences.  
+  
+    User Data:  
+    ${
+      hasHabits
+        ? "Habits:\n" +
+          habits
+            .map(
+              (h: any) =>
+                `- ${h.name}: ${h.description} (Streak: ${h.currentStreak}/${h.targetDays})`
+            )
+            .join("\n")
+        : "No habits provided."
+    }  
+    ${
+      hasTasks
+        ? "Tasks:\n" +
+          tasks
+            .map(
+              (t: any) =>
+                `- ${t.title}: ${t.notes || "No notes"} (Progress: ${
+                  t.completedPomodoros
+                }/${t.estimatedPomodoros})`
+            )
+            .join("\n")
+        : "No tasks provided."
+    }  
+  
+    Keep all responses **short, clear, and easy to understand**. Format everything in **simple sentences** without complex words. Return in JSON format under the 'insights' key.  
+  `;
 
     const result = await generateObject({
       model: openai("gpt-3.5-turbo"),
@@ -100,4 +103,6 @@ export const getInsights = async (c: Context): Promise<Response> => {
     console.error("Error generating insights:", error);
     return c.json({ error: "Internal server error" }, 500);
   }
-};
+});
+
+export default insights;
